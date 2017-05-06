@@ -27,9 +27,6 @@ double bivariate_normal(double x, double y, double mu_x, double mu_y, double sig
   return exp(-((x-mu_x)*(x-mu_x)/(2*sig_x*sig_x) + (y-mu_y)*(y-mu_y)/(2*sig_y*sig_y))) / (2.0*3.14159*sig_x*sig_y);
 }
 
-
-
-
 void ParticleFilter::init(double x, double y, double theta, double std_var[]) {
 	// TODO: Set the number of particles. Initialize all particles to first position (based on estimates of
 	//   x, y, theta and their uncertainties from GPS) and all weights to 1.
@@ -49,10 +46,6 @@ void ParticleFilter::init(double x, double y, double theta, double std_var[]) {
 
 	 num_particles = 200;
 	 weights.resize(num_particles);
-   std::default_random_engine gen;
-   std::normal_distribution<double> N_x_init(0, std_var[0]);
-   std::normal_distribution<double> N_y_init(0, std_var[1]);
-   std::normal_distribution<double> N_theta_init(0, std_var[2]);
 
 
 
@@ -60,9 +53,9 @@ void ParticleFilter::init(double x, double y, double theta, double std_var[]) {
 		 		Particle p_i; // Define i-th particle of type stuct Particle
 				// Fill out different fields for particle
 				p_i.id = i;
-				p_i.x = x + N_x_init(gen);
-				p_i.y = y + + N_y_init(gen);
-				p_i.theta = theta + N_theta_init(gen);
+				p_i.x = x + std_var[0]*distribution(generator);
+				p_i.y = y + std_var[1]*distribution(generator);
+				p_i.theta = theta + std_var[2]*distribution(generator);
         p_i.weight = 1.0f;
         weights[i] = 1.0f;
 				particles.push_back(p_i);
@@ -90,11 +83,6 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	 * @param yaw_rate Yaw rate of car from t to t+1 [rad/s]
 	 */
 
-   std::default_random_engine gen;
-   std::normal_distribution<double> N_x_init(0, std_pos[0]);
-   std::normal_distribution<double> N_y_init(0, std_pos[1]);
-   std::normal_distribution<double> N_theta_init(0, std_pos[2]);
-
 
 	 for (int i = 0; i < num_particles; i++) {
 
@@ -104,14 +92,13 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 
 
 	 	if (fabs(dth)>0.001){
-				particles[i].x +=   v/dth*(sin(th+dth*delta_t) - sin(th))+ N_x_init(gen);
-				particles[i].y +=  -v/dth*(cos(th+dth*delta_t) - cos(th))+ N_y_init(gen);
-				particles[i].theta += dth*delta_t+ N_theta_init(gen);
-
+				particles[i].x +=   v/dth*(sin(th+dth*delta_t) - sin(th))+ std_pos[0]*distribution(generator);
+				particles[i].y +=  -v/dth*(cos(th+dth*delta_t) - cos(th))+ std_pos[1]*distribution(generator);
+				particles[i].theta += dth*delta_t+ std_pos[2]*distribution(generator);
 			} else {
-				particles[i].x += v*cos(th)*delta_t+ N_x_init(gen);
-				particles[i].y += v*sin(th)*delta_t+ N_y_init(gen);
-				particles[i].theta += dth*delta_t+ N_theta_init(gen);
+				particles[i].x += v*cos(th)*delta_t+ std_pos[0]*distribution(generator);
+				particles[i].y += v*sin(th)*delta_t+ std_pos[1]*distribution(generator);
+				particles[i].theta += dth*delta_t+ std_pos[2]*distribution(generator);
 		}
 
 	}
